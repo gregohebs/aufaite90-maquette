@@ -43,3 +43,18 @@
     form.style.display='none'; s.style.display='block'; s.focus();
   });
 })();
+
+/* Transitions entre les pages (repli si le navigateur n'a pas de transition native) */
+(function(){
+  var native=window.CSS&&CSS.supports&&CSS.supports('view-transition-name','a')&&('onpagereveal' in window);
+  if(native||matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  var h=document.documentElement; h.classList.add('pt','pt-in');
+  requestAnimationFrame(function(){requestAnimationFrame(function(){h.classList.remove('pt-in')})});
+  addEventListener('pageshow',function(e){if(e.persisted)h.classList.remove('pt-out','pt-in')});
+  document.addEventListener('click',function(e){
+    var a=e.target.closest('a[href]'); if(!a||e.defaultPrevented||e.button||e.metaKey||e.ctrlKey||e.shiftKey||e.altKey||a.target==='_blank'||a.hasAttribute('download'))return;
+    var u=new URL(a.href,location.href);
+    if(u.origin!==location.origin||!/\.html$|\/$/.test(u.pathname)||(u.pathname===location.pathname&&u.hash))return;
+    e.preventDefault(); h.classList.add('pt-out'); setTimeout(function(){location.href=a.href},180);
+  });
+})();

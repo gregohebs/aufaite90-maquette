@@ -372,3 +372,19 @@ html.v3d-open{overflow:hidden}
 nav.main a.nl{white-space:nowrap}
 @media (max-width:1280px) and (min-width:1081px){nav.main a.nl{padding:10px 8px;font-size:14px}.top .wrap{gap:16px}.top .actions .btn-call span{display:none}}
 .v3d [hidden]{display:none!important}
+
+/* Transitions entre les pages : fondu court, l'en-tête reste en place */
+@view-transition{navigation:auto}
+header.top{view-transition-name:site-header}
+::view-transition-old(root){animation:vt-out .2s ease-in both}
+::view-transition-new(root){animation:vt-in .42s cubic-bezier(.2,.7,.2,1) both}
+@keyframes vt-out{to{opacity:0}}
+@keyframes vt-in{from{opacity:0;transform:translateY(14px)}}
+/* repli pour les navigateurs sans transition native */
+html.pt main,html.pt footer{transition:opacity .35s ease}
+html.pt-in main,html.pt-in footer{opacity:0}
+html.pt-out main,html.pt-out footer{opacity:0;transition-duration:.18s}
+@media (prefers-reduced-motion:reduce){
+  ::view-transition-group(*),::view-transition-old(*),::view-transition-new(*){animation:none!important}
+  html.pt main,html.pt footer{transition:none!important}
+}
