@@ -254,6 +254,22 @@ def brand_tile(name):
 def write(name, s):
     open(os.path.join(OUT, name), 'w', encoding='utf-8').write(s)
 
+
+PROC3D = {
+ 'couverture':[('tuile','Tuile mécanique'),('ardoise','Ardoise'),('faitiere','Faîtière'),('bac','Bac acier'),('sandwich','Panneau sandwich')],
+ 'debord':[('chevron','Chevrons'),('liteau','Liteaux'),('lambris','Lambris PVC'),('osb','Panneaux OSB'),('lamelle','Lamellé-collé')],
+ 'etancheite':[('rouleau','Laine minérale'),('pu','Panneaux PU'),('ecran','Écran HPV'),('bitume','Membrane bitume')],
+ 'zinguerie':[('gouttiere','Gouttière'),('descente','Descente et coude'),('crochet','Crochet')],
+ 'fenetres':[('fenetre','Fenêtre de toit'),('sortie','Sortie de toit')], 'solaire':[('solaire','Panneau photovoltaïque')],
+ 'bardage':[('bardage','Lames de bardage'),('clin','Clins fibre-ciment'),('facade','Bardage acier')],
+ 'loisirs':[('piscine','Piscine'),('spa','Spa'),('sauna','Sauna'),('chlore','Traitement de l’eau')], 'outillage':[],
+}
+def proc3d(rid):
+    items = PROC3D.get(rid) or []
+    if not items: return ''
+    bt = ''.join(f'<button type="button" class="p3d" data-v3d="{k}" data-type="proc" data-ray="{rid}"><span class="cube" aria-hidden="true"></span>{E(n)}</button>' for k, n in items)
+    return f'<div class="in3d"><p class="lbl-s">À manipuler en 3D</p><div class="p3d-row">{bt}</div></div>'
+
 # ---------------------------------------------------------------- pages rayon
 def slug(s):
     import unicodedata, re
@@ -267,7 +283,7 @@ for i, r in enumerate(RAYONS):
         toc.append(f'<li><a href="#{a}">{E(b["t"])}{" ("+E(b["tag"].split(",")[0].lower())+")" if b.get("anchor") or b["t"] in ("Isolation végétale",) else ""}</a></li>')
         fam = ''.join(f'<li>{E(x)}</li>' for x in b['fam'])
         br = ('<p class="lbl-s">Nos fournisseurs</p><div class="brands">' + ''.join(brand_tile(x) for x in b['br']) + '</div>') if b['br'] else ''
-        gal = ('<div class="gallery">' + ''.join(f'<figure><img src="assets/{p}" alt="" loading="lazy"></figure>' for p in b['img']) + '</div>') if b.get('img') else ''
+        gal = ('<div class="gallery">' + ''.join(f'<button type="button" class="g3d" data-v3d="{p[9:-5]}" data-ray="{r["id"]}" aria-label="Voir ce produit en 3D"><img src="assets/{p}" alt="" loading="lazy"><span class="b3d">3D</span></button>' for p in b['img']) + '</div>') if b.get('img') else ''
         blocks.append(f'<section class="block" id="{a}"><h2>{E(b["t"])}</h2><p class="tagline">{E(b["tag"])}</p><ul class="fam">{fam}</ul>{br}{b.get("extra","")}{gal}</section>')
     stock = ''
     if r['stock']:
@@ -279,6 +295,7 @@ for i, r in enumerate(RAYONS):
 <section class="sec"><div class="wrap rayon-layout">
   <aside class="toc"><h2>Dans ce rayon</h2><ol>{''.join(toc)}</ol><a class="btn btn-red" href="contact.html?rayon={r["id"]}#devis">Demander un devis</a></aside>
   <div>
+    {proc3d(r["id"])}
     <p class="lead" style="margin-bottom:48px">Les marques ci-dessous sont celles que nous travaillons le plus. Cliquez sur un logo pour voir toute la gamme du fournisseur : ce qui n’est pas en stock, nous le commandons.</p>
     {''.join(blocks)}{stock}
   </div>
@@ -287,14 +304,29 @@ for i, r in enumerate(RAYONS):
   <a href="rayon-{prv["id"]}.html"><small>Rayon précédent</small><b>{E(prv["name"])}</b></a>
   <a class="next" href="rayon-{nxt["id"]}.html"><small>Rayon suivant</small><b>{E(nxt["name"])}</b></a>
 </div></section>
-''' + cta_band('Un chantier à chiffrer ?', f'?rayon={r["id"]}') + footer()
+''' + cta_band('Un chantier à chiffrer ?', f'?rayon={r["id"]}') + footer('<script src="assets/af3d.js" defer></script>\n')
     write(f'rayon-{r["id"]}.html', body)
+
+
+DEPOT3D = '''
+<section class="dep3d" id="depot3d" aria-labelledby="t-dep3d">
+  <div class="wrap dep3d-head"><h2 id="t-dep3d">Le dépôt en 3D</h2><p class="lead">Une palette par rayon. Ouvrez-en une : elle s’éclate en tous les produits du rayon, que vous pouvez ensuite prendre en main en 3D.</p></div>
+  <div class="wrap"><div class="dep3d-tabs" role="toolbar" aria-label="Choisir un rayon"></div></div>
+  <div class="dep3d-stage">
+    <canvas aria-label="Vue 3D du dépôt : neuf palettes de produits"></canvas>
+    <div class="dep3d-labels"></div>
+    <div class="dep3d-tip" hidden></div>
+    <div class="dep3d-info" hidden aria-live="polite"></div>
+    <p class="dep3d-help">Glissez pour tourner autour, molette pour zoomer.</p>
+  </div>
+</section>
+'''
 
 # ---------------------------------------------------------------- produits
 write('produits.html', head('Nos produits – Au Faite 90', 'Bardage, isolation, bois, couverture, zinguerie : les neuf rayons d’Au Faite 90.') + header('produits.html') +
  page_head('Nos produits', 'Neuf rayons pour couvrir, isoler, habiller et équiper un toit. Ce qui n’est pas en stock, nous le commandons chez nos fournisseurs.', 'img/stock/couv1.webp',
    [('index.html','Accueil'),(None,'Nos produits')], 'Présentoirs de tuiles au dépôt de Grandvillars') +
- f'<section class="sec alt"><div class="wrap">{rayon_cards()}</div></section>' + cta_band() + footer())
+ DEPOT3D + f'<section class="sec alt"><div class="wrap">{rayon_cards()}</div></section>' + cta_band() + footer('<script src="assets/af3d.js" defer></script>\n'))
 
 # ---------------------------------------------------------------- entreprise
 ALL_LOGOS = sorted(f[:-5] for f in os.listdir(OUT + '/assets/logos/f') if f.endswith('.webp'))
@@ -423,13 +455,16 @@ write('mentions-legales.html', head('Mentions légales – Au Faite 90', 'Mentio
 # ---------------------------------------------------------------- accueil
 LAYERS = [
  dict(key='solaire',name='Panneaux solaires',txt="Modules en surimposition sur rails ou intégrés à la couverture, avec les fixations adaptées à votre tuile.",brands='Terreal, Prefa, Ubbink',cat='solaire'),
- dict(key='fenetre',name='Fenêtre de toit',txt="Fenêtres de toit, volets, stores et lanterneaux, avec leurs raccords d'étanchéité. Conduits et sorties de toit.",brands='Velux, Roto, Bluetek, Poujoulat',cat='fenetres'),
- dict(key='tuiles',name='Couverture',txt="Tuiles terre cuite, béton et verre, ardoise, bac acier et panneaux isolés. Les gammes sont exposées au dépôt pour choisir la teinte sur pièce.",brands='Terreal, Koramic, Edilians, Cupa Pizarras, Joris Ide, ArcelorMittal',cat='couverture'),
- dict(key='zinguerie',name='Zinguerie',txt="Gouttières, descentes et leurs accessoires en zinc, galva, acier laqué ou cuivre. Pliage sur mesure jusqu'à 2 m à Grandvillars.",brands='VMZinc, Rheinzink',cat='zinguerie'),
- dict(key='liteaux',name='Liteaux et contre-liteaux',txt="Bois de couverture pour ventiler sous les tuiles : liteaux, lattes, voliges.",brands='Scierie Weber, W Distribution Bois',cat='debord'),
- dict(key='ecran',name='Écran sous-toiture',txt="Écrans, membranes bitume, EPDM et PVC, bandes et adhésifs pour l'étanchéité.",brands='Soprema, Siplast, Novintiss, Renolit',cat='etancheite'),
+ dict(key='fenetre',name='Fenêtre de toit',txt="Fenêtres de toit, volets, stores, verrières et lanterneaux, avec leurs raccords d'étanchéité.",brands='Velux, Roto, Bluetek',cat='fenetres'),
+ dict(key='conduit',name='Sortie de toit et conduit',txt="Sorties de toit, conduits de fumée isolés et ventilations, avec l'abergement zinc autour.",brands='Poujoulat',cat='fenetres'),
+ dict(key='tuiles',name='Couverture',txt="Tuiles terre cuite, béton et verre, faîtières, ardoise, bac acier et panneaux isolés. Les gammes sont exposées au dépôt pour choisir la teinte sur pièce.",brands='Terreal, Koramic, Edilians, Cupa Pizarras, Joris Ide, ArcelorMittal',cat='couverture'),
+ dict(key='zinguerie',name='Zinguerie',txt="Gouttières, crochets, descentes, coudes, colliers et dauphins, en zinc, galva, acier laqué ou cuivre. Pliage sur mesure jusqu'à 2 m à Grandvillars.",brands='VMZinc, Rheinzink',cat='zinguerie'),
+ dict(key='debord',name='Débord de toit',txt="Lambris de sous-face, planches et bandeaux de rive, en bois ou en PVC sans entretien.",brands='Lignalpes, MEP, Deceuninck',cat='debord'),
+ dict(key='bardage',name='Bardage du pignon',txt="Lames de bardage bois, PVC ou fibre-ciment pour habiller pignons et façades.",brands='Vinylit, Deceuninck, Cedral',cat='bardage'),
+ dict(key='liteaux',name='Liteaux et contre-liteaux',txt="Bois de couverture traité pour poser les tuiles et ventiler sous la couverture.",brands='Scierie Weber, W Distribution Bois',cat='debord'),
+ dict(key='ecran',name='Écran sous-toiture',txt="Écrans HPV, membranes bitume, EPDM et PVC, bandes et adhésifs pour l'étanchéité.",brands='Soprema, Siplast, Novintiss, Renolit',cat='etancheite'),
  dict(key='isolant',name='Isolation',txt="Laine de roche, laine de bois, ouate, panneaux PU et isolants minces. La machine à souffler Jetrock se loue au dépôt.",brands='Rockwool, Isover, Igloo, IKO, Knauf, Unilin',cat='etancheite'),
- dict(key='charpente',name='Charpente',txt="Charpente sur liste, chevrons, poutres, lamellé-collé, OSB et panneaux. Débords de toit en bois ou PVC.",brands='Scierie Weber, Lignalpes, MEP',cat='debord'),
+ dict(key='charpente',name='Charpente',txt="Chevrons, pannes, faîtage, lamellé-collé et panneaux : la charpente sur liste, à la longueur.",brands='Scierie Weber, Lignalpes',cat='debord'),
 ]
 home = head('Au Faite 90 – Matériaux de couverture', 'Négoce de matériaux de couverture à Grandvillars, Valdoie et Saulnot. Tuiles, ardoises, bac acier, zinguerie, isolation, fenêtres de toit. Livraison par camion-grue.') + header('index.html') + f'''
 <section class="hero">
@@ -448,7 +483,7 @@ home = head('Au Faite 90 – Matériaux de couverture', 'Négoce de matériaux d
 </div></section>
 
 <section class="explode" id="toiture" aria-labelledby="t-toiture">
-  <div class="wrap intro"><div class="sec-head" style="margin-bottom:0"><h2 id="t-toiture">Du chevron à la tuile, on a chaque couche.</h2><p class="lead">Faites défiler : la toiture s’ouvre couche par couche, avec pour chacune ce que nous avons en stock et les marques que nous distribuons.</p></div></div>
+  <div class="wrap intro"><div class="sec-head" style="margin-bottom:0"><h2 id="t-toiture">Du chevron à la tuile, on a chaque couche.</h2><p class="lead">Faites défiler : la toiture s’ouvre couche par couche. Cliquez sur une étiquette pour ouvrir le rayon, ou sur un élément de la maison pour le voir en 3D.</p></div></div>
   <div class="stage" id="stage">
     <canvas id="roof" aria-hidden="true"></canvas>
     <div class="tags" id="tags" aria-hidden="true"></div>
@@ -488,10 +523,10 @@ home = head('Au Faite 90 – Matériaux de couverture', 'Négoce de matériaux d
   <div><h2 style="font-size:clamp(32px,3.4vw,48px)">Vous êtes déjà client ?</h2><p class="lead muted" style="margin:10px 0 0">Votre avis aide les artisans et les particuliers de la région à nous trouver.</p></div>
   <a class="btn btn-line" href="https://www.google.com/search?q=Au+Faite+90+Avis" target="_blank" rel="noopener">Laisser un avis Google</a>
 </div></section>
-''' + cta_band() + footer(f'''<script>const LAYERS={json.dumps(LAYERS, ensure_ascii=False)};</script>
+''' + cta_band() + footer(f'''<script>window.LAYERS={json.dumps(LAYERS, ensure_ascii=False)};</script>
 <script src="assets/vendor/gsap.min.js"></script>
 <script src="assets/vendor/ScrollTrigger.min.js"></script>
-<script src="assets/roof.js"></script>
+<script src="assets/af3d.js"></script>
 ''')
 write('index.html', home)
 print('ok', len(os.listdir(OUT)))

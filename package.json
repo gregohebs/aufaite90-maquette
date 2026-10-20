@@ -1,0 +1,15 @@
+{
+  "name": "aufaite90-maquette",
+  "private": true,
+  "description": "Maquette de démonstration (non officielle) du site Au Faite 90",
+  "scripts": {
+    "build:3d": "esbuild src/3d/main.js --bundle --minify --format=iife --target=es2019 --outfile=assets/af3d.js",
+    "build:pages": "python3 src/build.py",
+    "build:p3d": "python3 tools/p3d.py",
+    "build": "npm run build:pages && npm run build:3d"
+  },
+  "devDependencies": {
+    "esbuild": "^0.28.0",
+    "three": "0.160.0"
+  }
+}

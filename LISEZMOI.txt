@@ -3,20 +3,16 @@ MAQUETTE AU FAITE 90 - site de démonstration (non officiel)
 Ouvrir : double-cliquer sur index.html (Chrome ou Edge). Fonctionne hors ligne.
 
 15 pages, même structure que le site actuel :
-- index.html                 Accueil (vue éclatée 3D de la toiture)
+- index.html                 Accueil (maison 3D, toiture éclatée en 11 couches)
 - entreprise.html            L'entreprise (histoire, équipe, 80 partenaires)
-- produits.html              Nos produits (les 9 rayons)
+- produits.html              Nos produits (le dépôt en 3D + les 9 rayons)
 - rayon-*.html               une page par rayon, avec familles de produits,
                              marques (logos cliquables) et photos
 - services.html              Livraison et grutage, périmètre, pliage, location
 - contact.html               Les 3 dépôts (ouvert/fermé en direct) + devis
 - mentions-legales.html      Reprise des mentions du site actuel
 
-Modifier les textes : src/build.py contient tout le contenu, puis
-  python src/build.py   (régénère les pages ; à lancer depuis ce dossier,
-                         après avoir adapté la variable OUT en haut du fichier)
-La 3D : src/roof.src.js, à recompiler avec
-  npx esbuild src/roof.src.js --bundle --minify --format=iife --outfile=assets/roof.js
+Modifier : voir README.md (npm run build:pages pour les textes, npm run build:3d pour la 3D).
 
 À savoir avant de montrer / mettre en ligne
 - Le formulaire de devis n'envoie rien (démo).

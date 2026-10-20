@@ -28,6 +28,18 @@
   <div class="txt"><div class="crumbs"><a href="index.html">Accueil</a> <span>/</span> Nos produits</div><h1>Nos produits</h1><p class="lead">Neuf rayons pour couvrir, isoler, habiller et équiper un toit. Ce qui n’est pas en stock, nous le commandons chez nos fournisseurs.</p></div>
   <div class="pic"><img src="assets/img/stock/couv1.webp" alt="Présentoirs de tuiles au dépôt de Grandvillars"></div>
 </section>
+
+<section class="dep3d" id="depot3d" aria-labelledby="t-dep3d">
+  <div class="wrap dep3d-head"><h2 id="t-dep3d">Le dépôt en 3D</h2><p class="lead">Une palette par rayon. Ouvrez-en une : elle s’éclate en tous les produits du rayon, que vous pouvez ensuite prendre en main en 3D.</p></div>
+  <div class="wrap"><div class="dep3d-tabs" role="toolbar" aria-label="Choisir un rayon"></div></div>
+  <div class="dep3d-stage">
+    <canvas aria-label="Vue 3D du dépôt : neuf palettes de produits"></canvas>
+    <div class="dep3d-labels"></div>
+    <div class="dep3d-tip" hidden></div>
+    <div class="dep3d-info" hidden aria-live="polite"></div>
+    <p class="dep3d-help">Glissez pour tourner autour, molette pour zoomer.</p>
+  </div>
+</section>
 <section class="sec alt"><div class="wrap"><div class="rayons"><a class="rayon" href="rayon-debord.html"><div class="ph"><img src="assets/img/bois.webp" alt="" loading="lazy"></div><div class="bd"><h3>Débord de toit &amp; Structure</h3><p class="what">Lambris, rives et cache-pannes en bois ou PVC, bois de charpente et panneaux.</p><span class="go">Voir le rayon</span></div></a><a class="rayon" href="rayon-couverture.html"><div class="ph"><img src="assets/img/tuiles.webp" alt="" loading="lazy"></div><div class="bd"><h3>Couverture</h3><p class="what">Tuiles, ardoise, bac acier, panneaux isolés, fibrociment, translucide et bardeaux.</p><span class="go">Voir le rayon</span></div></a><a class="rayon" href="rayon-etancheite.html"><div class="ph"><img src="assets/img/isolant.webp" alt="" loading="lazy"></div><div class="bd"><h3>Étanchéité &amp; Isolation</h3><p class="what">Laines minérales et végétales, ouate, PU, isolants minces, membranes PVC, EPDM et bitume.</p><span class="go">Voir le rayon</span></div></a><a class="rayon" href="rayon-zinguerie.html"><div class="ph"><img src="assets/img/cuivre.webp" alt="" loading="lazy"></div><div class="bd"><h3>Quincaillerie &amp; Zinguerie</h3><p class="what">Gouttières, descentes et tous leurs accessoires, en zinc, galva, acier laqué ou cuivre.</p><span class="go">Voir le rayon</span></div></a><a class="rayon" href="rayon-bardage.html"><div class="ph"><img src="assets/img/sandwich.webp" alt="" loading="lazy"></div><div class="bd"><h3>Bardage &amp; Revêtements</h3><p class="what">Bardage acier, panneaux de façade, PVC et fibre-ciment.</p><span class="go">Voir le rayon</span></div></a><a class="rayon" href="rayon-solaire.html"><div class="ph"><img src="assets/img/solaire.webp" alt="" loading="lazy"></div><div class="bd"><h3>Panneaux Solaires</h3><p class="what">Modules intégrés ou en surimposition, systèmes de montage et accessoires.</p><span class="go">Voir le rayon</span></div></a><a class="rayon" href="rayon-fenetres.html"><div class="ph"><img src="assets/img/velux.webp" alt="" loading="lazy"></div><div class="bd"><h3>Fenêtres, Exutoires &amp; Conduits de fumée</h3><p class="what">Fenêtres de toit, volets, stores, verrières, lanterneaux, conduits et sorties de toit.</p><span class="go">Voir le rayon</span></div></a><a class="rayon" href="rayon-outillage.html"><div class="ph"><img src="assets/img/showroom.webp" alt="" loading="lazy"></div><div class="bd"><h3>Outillage &amp; Sécurité</h3><p class="what">Électroportatif, outils de couvreur, consommables, manutention et EPI.</p><span class="go">Voir le rayon</span></div></a><a class="rayon" href="rayon-loisirs.html"><div class="ph"><img src="assets/img/piscine.webp" alt="" loading="lazy"></div><div class="bd"><h3>Loisirs : Piscine &amp; Spa</h3><p class="what">Piscines, saunas, spas, traitement, équipements, pergolas et douches.</p><span class="go">Voir le rayon</span></div></a></div></div></section><section class="cta-band"><div class="wrap"><div><h2>Une liste de matériaux à chiffrer ?</h2><div class="tels" style="margin-top:16px"><span>Grandvillars <a href="tel:+33384236040">03 84 23 60 40</a></span><span>Valdoie <a href="tel:+33384284849">03 84 28 48 49</a></span><span>Saulnot <a href="tel:+33367351767">03 67 35 17 67</a></span></div></div><a class="btn btn-red" href="contact.html#devis">Demander un devis</a></div></section>
 </main>
 <footer>
@@ -42,5 +54,6 @@
   </div>
 </footer>
 <script src="assets/site.js"></script>
+<script src="assets/af3d.js" defer></script>
 </body>
 </html>
