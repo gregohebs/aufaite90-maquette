@@ -255,20 +255,6 @@ def write(name, s):
     open(os.path.join(OUT, name), 'w', encoding='utf-8').write(s)
 
 
-PROC3D = {
- 'couverture':[('tuile','Tuile mécanique'),('ardoise','Ardoise'),('faitiere','Faîtière'),('bac','Bac acier'),('sandwich','Panneau sandwich')],
- 'debord':[('chevron','Chevrons'),('liteau','Liteaux'),('lambris','Lambris PVC'),('osb','Panneaux OSB'),('lamelle','Lamellé-collé')],
- 'etancheite':[('rouleau','Laine minérale'),('pu','Panneaux PU'),('ecran','Écran HPV'),('bitume','Membrane bitume')],
- 'zinguerie':[('gouttiere','Gouttière'),('descente','Descente et coude'),('crochet','Crochet')],
- 'fenetres':[('fenetre','Fenêtre de toit'),('sortie','Sortie de toit')], 'solaire':[('solaire','Panneau photovoltaïque')],
- 'bardage':[('bardage','Lames de bardage'),('clin','Clins fibre-ciment'),('facade','Bardage acier')],
- 'loisirs':[('piscine','Piscine'),('spa','Spa'),('sauna','Sauna'),('chlore','Traitement de l’eau')], 'outillage':[],
-}
-def proc3d(rid):
-    items = PROC3D.get(rid) or []
-    if not items: return ''
-    bt = ''.join(f'<button type="button" class="p3d" data-v3d="{k}" data-type="proc" data-ray="{rid}"><span class="cube" aria-hidden="true"></span>{E(n)}</button>' for k, n in items)
-    return f'<div class="in3d"><p class="lbl-s">À manipuler en 3D</p><div class="p3d-row">{bt}</div></div>'
 
 # ---------------------------------------------------------------- pages rayon
 def slug(s):
@@ -283,7 +269,7 @@ for i, r in enumerate(RAYONS):
         toc.append(f'<li><a href="#{a}">{E(b["t"])}{" ("+E(b["tag"].split(",")[0].lower())+")" if b.get("anchor") or b["t"] in ("Isolation végétale",) else ""}</a></li>')
         fam = ''.join(f'<li>{E(x)}</li>' for x in b['fam'])
         br = ('<p class="lbl-s">Nos fournisseurs</p><div class="brands">' + ''.join(brand_tile(x) for x in b['br']) + '</div>') if b['br'] else ''
-        gal = ('<div class="gallery">' + ''.join(f'<button type="button" class="g3d" data-v3d="{p[9:-5]}" data-ray="{r["id"]}" aria-label="Voir ce produit en 3D"><img src="assets/{p}" alt="" loading="lazy"><span class="b3d">3D</span></button>' for p in b['img']) + '</div>') if b.get('img') else ''
+        gal = ('<div class="gallery">' + ''.join(f'<figure><img src="assets/{p}" alt="" loading="lazy"></figure>' for p in b['img']) + '</div>') if b.get('img') else ''
         blocks.append(f'<section class="block" id="{a}"><h2>{E(b["t"])}</h2><p class="tagline">{E(b["tag"])}</p><ul class="fam">{fam}</ul>{br}{b.get("extra","")}{gal}</section>')
     stock = ''
     if r['stock']:
@@ -295,7 +281,6 @@ for i, r in enumerate(RAYONS):
 <section class="sec"><div class="wrap rayon-layout">
   <aside class="toc"><h2>Dans ce rayon</h2><ol>{''.join(toc)}</ol><a class="btn btn-red" href="contact.html?rayon={r["id"]}#devis">Demander un devis</a></aside>
   <div>
-    {proc3d(r["id"])}
     <p class="lead" style="margin-bottom:48px">Les marques ci-dessous sont celles que nous travaillons le plus. Cliquez sur un logo pour voir toute la gamme du fournisseur : ce qui n’est pas en stock, nous le commandons.</p>
     {''.join(blocks)}{stock}
   </div>
@@ -304,29 +289,16 @@ for i, r in enumerate(RAYONS):
   <a href="rayon-{prv["id"]}.html"><small>Rayon précédent</small><b>{E(prv["name"])}</b></a>
   <a class="next" href="rayon-{nxt["id"]}.html"><small>Rayon suivant</small><b>{E(nxt["name"])}</b></a>
 </div></section>
-''' + cta_band('Un chantier à chiffrer ?', f'?rayon={r["id"]}') + footer('<script src="assets/af3d.js" defer></script>\n')
+''' + cta_band('Un chantier à chiffrer ?', f'?rayon={r["id"]}') + footer()
     write(f'rayon-{r["id"]}.html', body)
 
 
-DEPOT3D = '''
-<section class="dep3d" id="depot3d" aria-labelledby="t-dep3d">
-  <div class="wrap dep3d-head"><h2 id="t-dep3d">Le dépôt en 3D</h2><p class="lead">Une palette par rayon. Ouvrez-en une : elle s’éclate en tous les produits du rayon, que vous pouvez ensuite prendre en main en 3D.</p></div>
-  <div class="wrap"><div class="dep3d-tabs" role="toolbar" aria-label="Choisir un rayon"></div></div>
-  <div class="dep3d-stage">
-    <canvas aria-label="Vue 3D du dépôt : neuf palettes de produits"></canvas>
-    <div class="dep3d-labels"></div>
-    <div class="dep3d-tip" hidden></div>
-    <div class="dep3d-info" hidden aria-live="polite"></div>
-    <p class="dep3d-help">Glissez pour tourner autour, molette pour zoomer.</p>
-  </div>
-</section>
-'''
 
 # ---------------------------------------------------------------- produits
 write('produits.html', head('Nos produits – Au Faite 90', 'Bardage, isolation, bois, couverture, zinguerie : les neuf rayons d’Au Faite 90.') + header('produits.html') +
  page_head('Nos produits', 'Neuf rayons pour couvrir, isoler, habiller et équiper un toit. Ce qui n’est pas en stock, nous le commandons chez nos fournisseurs.', 'img/stock/couv1.webp',
    [('index.html','Accueil'),(None,'Nos produits')], 'Présentoirs de tuiles au dépôt de Grandvillars') +
- DEPOT3D + f'<section class="sec alt"><div class="wrap">{rayon_cards()}</div></section>' + cta_band() + footer('<script src="assets/af3d.js" defer></script>\n'))
+ f'<section class="sec alt"><div class="wrap">{rayon_cards()}</div></section>' + cta_band() + footer())
 
 # ---------------------------------------------------------------- entreprise
 ALL_LOGOS = sorted(f[:-5] for f in os.listdir(OUT + '/assets/logos/f') if f.endswith('.webp'))

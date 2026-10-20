@@ -1,8 +1,8 @@
 // Visionneuse 3D d'un produit : modale plein écran, rotation à la souris ou au doigt, zoom.
 import * as THREE from 'three';
 import { OrbitControls } from 'three/examples/jsm/controls/OrbitControls.js';
-import { makeRenderer, studioEnv, reduceMotion, loadRayon } from './common.js';
-import { PROC, RAYONS, buildProc, buildCutout, normalize } from './models.js';
+import { makeRenderer, studioEnv, reduceMotion } from './common.js';
+import { PROC, RAYONS, buildProc, normalize } from './models.js';
 
 let ui, renderer, scene, camera, controls, current, list = [], idx = 0, raf = 0, lastFocus = null, opened = false;
 
@@ -63,15 +63,8 @@ function resize() {
 async function show(spec) {
   if (current) { scene.remove(current); current.traverse(o => { if (o.geometry) o.geometry.dispose(); }); current = null; }
   let obj, info;
-  if (spec.type === 'proc') {
-    const p = PROC[spec.id]; obj = buildProc(spec.id);
-    info = { name: p.name, rayon: p.rayon, brand: p.brand, desc: p.desc };
-  } else {
-    const items = await loadRayon(spec.rayon); const it = items.find(x => x.id === spec.id);
-    if (!it) return;
-    obj = buildCutout(it, .06); obj.rotation.x = 0;
-    info = { name: it.name, rayon: spec.rayon, brand: it.brand, desc: 'Visuel fournisseur. Disponibilité et variantes : demandez au dépôt.' };
-  }
+  const p = PROC[spec.id]; obj = buildProc(spec.id);
+  info = { name: p.name, rayon: p.rayon, brand: p.brand, desc: p.desc };
   current = normalize(obj, 1.25); scene.add(current);
   const box = new THREE.Box3().setFromObject(current); const c = new THREE.Vector3(); box.getCenter(c);
   const sph = new THREE.Sphere(); box.getBoundingSphere(sph);

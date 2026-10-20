@@ -5,7 +5,6 @@
   "scripts": {
     "build:3d": "esbuild src/3d/main.js --bundle --minify --format=iife --target=es2019 --outfile=assets/af3d.js",
     "build:pages": "python3 src/build.py",
-    "build:p3d": "python3 tools/p3d.py",
     "build": "npm run build:pages && npm run build:3d"
   },
   "devDependencies": {
