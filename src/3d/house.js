@@ -8,6 +8,7 @@ const W = 3, H = 3, LW = 6.2, L = 7, P = THREE.MathUtils.degToRad(35);
 const RIDGE = H + W * Math.tan(P), OV = 0.45, S = (W + OV) / Math.cos(P);
 const NORMAL = new THREE.Vector3(Math.sin(P), Math.cos(P), 0);
 const sm = t => t * t * (3 - 2 * t);
+const DEBUG = /debug3d/.test(location.search);
 
 const M = o => new THREE.MeshStandardMaterial(o);
 const mk = (g, m, cast = true) => { const x = new THREE.Mesh(g, m); x.castShadow = cast; x.receiveShadow = true; return x; };
@@ -70,13 +71,13 @@ function placeOpenings(house) {
 
 // ---------------------------------------------------------------- toiture (un pan)
 const WIN = { x0: 1.35, x1: 2.55, z0: 1.4, z1: 2.6 };
-const CHIM = { x0: .4, x1: 1.12, z0: 2.7, z1: 3.3 };
+const CHIM = { x0: .45, x1: 1.02, z0: 2.78, z1: 3.22 };
 function tilesFor(skip) {
   const geo = tileGeometry(.25, .42); geo.rotateY(Math.PI / 2);
-  const rows = Math.floor((S - .1) / .32), cols = Math.floor((L - .02) / .25);
+  const rows = Math.ceil((S + .06 - .21 - .19) / .32) + 1, cols = Math.round(L / .25), cw = L / cols;
   const pos = [];
   for (let i = 0; i < rows; i++) for (let j = 0; j < cols; j++) {
-    const x = .25 + i * .32, z = -L / 2 + .135 + j * .25;
+    const x = Math.min(.19 + i * .32, S + .06 - .21), z = -L / 2 + cw / 2 + j * cw;
     if (skip && skip(x, z)) continue; pos.push([x, z, i, j]);
   }
   const mat = M({ color: '#ffffff', map: TEX.terracotta(), roughness: .62 });
@@ -96,8 +97,8 @@ function makePitch(full) {
   const woodM = M({ map: TEX.wood('#c79a63', 'ch'), roughness: .78 });
   const ch = layer('charpente');
   for (let z = -L / 2 + .2; z <= L / 2 - .15; z += .6) ch.add(box(S, .16, .075, woodM, S / 2, .08, z));
-  ch.add(box(.16, .26, L + .1, woodM, .05, -.1, 0));
-  if (full) { [1.3, 2.6].forEach(x => ch.add(box(.14, .22, L, woodM, x, -.12, 0))); }
+  ch.add(box(.16, .26, LW - .1, woodM, .05, -.1, 0));
+  if (full) { [1.3, 2.6].forEach(x => ch.add(box(.14, .22, LW - .1, woodM, x, -.12, 0))); }
   if (full) {
     const is = layer('isolant'), wool = M({ map: TEX.wool(), roughness: 1 });
     for (let z = -L / 2 + .2; z < L / 2 - .5; z += .6) is.add(box(3.25, .15, .52, wool, .3 + 3.25 / 2, .08, z + .3));
@@ -107,19 +108,29 @@ function makePitch(full) {
   for (let z = -L / 2 + .2; z <= L / 2 - .15; z += .6) li.add(box(S, .025, .04, bat, S / 2, .181, z));
   for (let x = .16; x < S; x += .32) li.add(box(.038, .027, L, bat, x, .207, 0));
   const tu = layer('tuiles');
-  const skip = full ? (x, z) => (x > WIN.x0 - .05 && x < WIN.x1 + .1 && z > WIN.z0 - .1 && z < WIN.z1 + .1) || (x > CHIM.x0 - .1 && x < CHIM.x1 + .1 && z > CHIM.z0 - .1 && z < CHIM.z1 + .1) : null;
+  const skip = full ? (x, z) => (x > WIN.x0 + .04 && x < WIN.x1 - .04 && z > WIN.z0 + .02 && z < WIN.z1 - .02) || (x > CHIM.x0 && x < CHIM.x1 && z > CHIM.z0 && z < CHIM.z1) : null;
   const t = tilesFor(skip); t.position.y = .235; tu.add(t);
   // faîtières
-  const fg = new THREE.CylinderGeometry(.15, .17, .44, 20, 1, true, 0, Math.PI); fg.rotateX(Math.PI / 2); fg.rotateZ(Math.PI / 2);
-  const fm = M({ color: '#9f4429', roughness: .6, side: THREE.DoubleSide, map: TEX.terracotta() });
-  const n = Math.ceil(L / .4), fi = new THREE.InstancedMesh(fg, fm, n), o = new THREE.Object3D();
-  for (let i = 0; i < n; i++) { o.position.set(0, 0, -L / 2 + .2 + i * .4); o.rotation.set(-.04, 0, 0); o.updateMatrix(); fi.setMatrixAt(i, o.matrix); }
-  fi.castShadow = true; const ridgeWrap = new THREE.Group(); ridgeWrap.add(fi); ridgeWrap.position.set(-.02, .36, 0); ridgeWrap.rotation.z = P; // reste horizontal
-  tu.add(ridgeWrap);
+  if (full) {
+    const n = Math.round(L / .42), len = L / n;
+    const fg = new THREE.CylinderGeometry(.2, .21, len + .025, 24, 1, true, 0, Math.PI); fg.rotateX(Math.PI / 2); fg.rotateZ(Math.PI / 2);
+    const fm = M({ color: '#9f4429', roughness: .6, side: THREE.DoubleSide, map: TEX.terracotta() });
+    const fi = new THREE.InstancedMesh(fg, fm, n), o = new THREE.Object3D();
+    for (let i = 0; i < n; i++) { o.position.set(0, 0, -L / 2 + len / 2 + i * len); o.updateMatrix(); fi.setMatrixAt(i, o.matrix); }
+    fi.castShadow = true; fi.receiveShadow = true;
+    // demi-cercles de fermeture aux deux pignons
+    const end = new THREE.CircleGeometry(.205, 24, 0, Math.PI);
+    const ridgeWrap = new THREE.Group(); ridgeWrap.add(fi);
+    [-1, 1].forEach(sz => { const e = mk(end, fm); e.position.z = sz * (L / 2 + .012); ridgeWrap.add(e); });
+    // le faîtage se pose sur les tuiles des deux pans (repère du pan droit, ramené à l'horizontale)
+    const h = .255 / Math.cos(P) - .07;
+    ridgeWrap.position.set(-h * Math.sin(P), h * Math.cos(P), 0); ridgeWrap.rotation.z = P;
+    tu.add(ridgeWrap);
+  }
   if (full) {
     const fw = layer('fenetre'), cx = (WIN.x0 + WIN.x1) / 2, cz = (WIN.z0 + WIN.z1) / 2, ww = WIN.x1 - WIN.x0, wd = WIN.z1 - WIN.z0;
-    fw.add(box(ww + .3, .02, wd + .3, MAT.alu(), cx, .25, cz));
-    fw.add(box(ww, .13, wd, MAT.alu(), cx, .31, cz));
+    fw.add(box(ww + .12, .03, wd + .12, MAT.alu(), cx, .3, cz));
+    fw.add(box(ww, .16, wd, MAT.alu(), cx, .32, cz));
     fw.add(box(ww - .1, .06, wd - .1, M({ color: '#5b4632', roughness: .6 }), cx, .36, cz));
     fw.add(box(ww - .2, .02, wd - .2, MAT.glass(), cx, .395, cz));
     fw.add(box(.05, .03, wd * .6, MAT.alu(), cx - ww / 2 + .08, .4, cz));
@@ -140,7 +151,11 @@ function buildChimney() {
   g.add(box(.62, .06, .62, brick, cx, 6.03, cz));
   const roof = mk(new THREE.ConeGeometry(.42, .16, 4), brick); roof.rotation.y = Math.PI / 4; roof.position.set(cx, 6.14, cz); g.add(roof);
   const pipe = mk(new THREE.CylinderGeometry(.09, .09, 2.6, 24), M({ color: '#dde2e4', metalness: .95, roughness: .2 })); pipe.position.set(cx, 4.2, cz); g.add(pipe);
-  const fl = mk(new THREE.BoxGeometry(.78, .015, .78), MAT.zinc()); fl.position.set(cx, RIDGE - cx * Math.tan(P) + .3, cz); fl.rotation.z = -P; g.add(fl);
+  const roofY = RIDGE - cx * Math.tan(P) + .28 / Math.cos(P);
+  const zincMat = M({ color: '#a9b1b5', metalness: .55, roughness: .42 });
+  const skirt = mk(new THREE.BoxGeometry(.58, .2, .58), zincMat); skirt.position.set(cx, roofY + .02, cz); g.add(skirt);
+  // bavette amont/aval posée dans la pente
+  const apron = mk(new THREE.BoxGeometry(.74, .02, .7), zincMat); apron.position.set(cx, RIDGE - cx * Math.tan(P) + .25 / Math.cos(P), cz); apron.rotation.z = -P; g.add(apron);
   return g;
 }
 function eaveTip(side = 1) { const e = new THREE.Vector3(S, .17, 0).applyAxisAngle(new THREE.Vector3(0, 0, 1), -P).add(new THREE.Vector3(0, RIDGE, 0)); e.x *= side; return e; }
@@ -160,9 +175,18 @@ function buildDebord(side) {
   const yS = RIDGE - (W + OV) * Math.tan(P) + .005;
   for (let i = 0; i < 4; i++) g.add(box(.11, .015, L, lam, side * (W + .06 + i * .113), yS, 0));
   g.add(box(.025, .24, L + .06, lam, side * (W + OV + .015), yS + .08, 0)); // planche de rive
-  const frame = new THREE.Group(); frame.position.set(0, RIDGE, 0); frame.rotation.z = -P * side; if (side < 0) frame.scale.x = -1;
-  [-1, 1].forEach(zs => frame.add(box(S + .05, .22, .025, lam, S / 2, .14, zs * (L / 2 + .013))));
-  g.add(frame); return g;
+  // sous-face des débords de pignon : ferme le dessous du toit entre le mur et la rive
+  const fr = new THREE.Group(); fr.position.set(0, RIDGE, 0); fr.rotation.z = -P * side; if (side < 0) fr.scale.x = -1;
+  [-1, 1].forEach(zs => fr.add(box(S, .018, (L - LW) / 2 + .01, lam, S / 2, -.012, zs * (LW / 2 + (L - LW) / 4))));
+  g.add(fr);
+  // planches de rive des pignons : coupées d'aplomb au faîtage, elles se rejoignent sans se croiser
+  const X = W + OV + .03, yt = x => RIDGE + .33 / Math.cos(P) - x * Math.tan(P), th = .4 / Math.cos(P);
+  const sh = new THREE.Shape(); sh.moveTo(0, yt(0)); sh.lineTo(X, yt(X)); sh.lineTo(X, yt(X) - th); sh.lineTo(0, yt(0) - th); sh.closePath();
+  [-1, 1].forEach(zs => {
+    const m = mk(new THREE.ExtrudeGeometry(sh, { depth: .03, bevelEnabled: false }), lam);
+    m.scale.x = side; m.position.z = zs * (L / 2 + .016) - .015; g.add(m);
+  });
+  return g;
 }
 function buildBardage() {
   const g = new THREE.Group(), m = M({ map: TEX.wood('#8a8d8f', 'bd'), roughness: .75 }), z = LW / 2 + .03;
@@ -281,6 +305,7 @@ export function initHouse(LAYERS) {
     camera.position.x += par.x * .6; camera.position.y += par.y * .4;
     camera.lookAt(camTgt);
     if (w >= 860) camera.setViewOffset(w, h, -w * .15, 0, w, h); else camera.setViewOffset(w, h, 0, h * .17, w, h);
+    if (DEBUG && window.__houseCam) { const o = window.__houseCam; camera.clearViewOffset(); camera.position.fromArray(o[0]); camera.lookAt(new THREE.Vector3().fromArray(o[1])); if (o[2]) s = o[2]; }
     const idx = s < 0 ? -1 : Math.min(N, Math.floor(s)); setActive(idx);
     LAYERS.forEach(l => glow(l.key, l.key === hovered ? .22 : 0));
     document.getElementById('hint').style.opacity = s > -.4 ? 0 : 1;
@@ -302,6 +327,7 @@ export function initHouse(LAYERS) {
   function resize() { const w = stage.clientWidth, h = stage.clientHeight; renderer.setSize(w, h, false); camera.aspect = w / h; camera.updateProjectionMatrix(); dirty = 3; }
   addEventListener('resize', resize); resize();
   new IntersectionObserver(e => { visible = e[0].isIntersecting; dirty = 3; }, { rootMargin: '120px' }).observe(stage);
+  if (DEBUG) window.__houseRedraw = () => { dirty = 6; };
   (function loop() { requestAnimationFrame(loop); if (!visible || dirty <= 0) return; dirty--; if (frame()) dirty = Math.max(dirty, 1); })();
 
   // interactions : survol et clic sur les éléments 3D
