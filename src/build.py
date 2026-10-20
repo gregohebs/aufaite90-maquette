@@ -165,7 +165,6 @@ def head(title, desc, extra=''):
 <meta name="robots" content="noindex, nofollow">
 <title>{E(title)}</title>
 <meta name="description" content="{E(desc)}">
-<meta name="robots" content="noindex, nofollow">
 <link rel="icon" href="assets/logos/af90-embleme.png">
 <link rel="stylesheet" href="assets/site.css">
 {extra}</head>
